@@ -1,0 +1,53 @@
+INTRODUCTION
+
+This tool builds a text classifier for retrieving relevant documents from dbGap.
+
+Before running, please check the prerequisites section below and make sure you 
+have all the tools installed.
+In order to run, check out the entire codebase and navigate to the root 
+directory (which contains this file). Then type:
+$> cd code
+$> python classify.py
+
+You should be able to see classification results for 6 different queries, related to
+heart ailments, atherosclerosis, blood ailment, lung problems, diabetes and other 
+general problems respectively. These 6 categories are not hard-written into the code,
+but are determined by the data file and its contents. A different data file with 
+different tags (or labels) would yield different results.
+
+BACKGROUND
+
+This tool was used to produce results that were published in the proceedings of the
+American Thoracic Society. The background and objectives are as detailed below.
+
+DbGaP was developed by NHLBI for genome-wide  association study data
+  * Growing quickly; 285 studies as of May 8, 2012.
+  * Users unable to reap full benefits: data content is not standardized.
+  * The Division of Biomedical Informatics at UCSD NHLBI-funded project to address 
+	  these limitations is entitled Phenotype Discoverer, which was funded under 
+		the Phenotype Finder IN Database resources (PFINDR) initiative.
+ 
+To enhance data retrieval we developed  two text classifiers and tested them against  standard manual keyword search for accuracy,  precision, recall and F-measure.
+  
+The current keyword-dependent search function  in dbGaP is insufficient for focused data  retrieval. The low level of precision  in all categories indicates that researchers  using these search strategies need to  spend significant time and effort  to  retrieve relevant studies. Standardized annotation  of data content for data retrieval are  needed to facilitate validating studies, discovering  control populations, performing virtual experiments,  meta- analysis and more.
+The dbGaP content will be standardized  using a text-mining approach based on  natural language processing (NLP) and semantic  integration. The database will be fully  annotated using standardized terminologies. In  addition, a new user-friendly query interface  will be created. 
+
+PREREQUISITES
+The following pre-requisite packages must be installed on your system.
+Newer versions should also work, but currently only the below tools have been used to run
+and test the code.
+  * Python version 2.7.1
+	* Numpy (http://numpy.scipy.org/)
+	* Scipy version 10.1 (http://www.scipy.org/)
+	* Scikit_learn version 0.10 (http://scikit-learn.org/stable/)
+	* textmining version 1.0 (http://www.christianpeccei.com/projects/textmining)
+
+DOCUMENTATION
+
+Rough draft: 
+
+CONTACT
+
+Abhishek Kumar
+abhishek@ucsd.edu
+

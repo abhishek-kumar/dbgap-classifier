@@ -1,0 +1,2479 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 3.5cm
+\topmargin 3.5cm
+\rightmargin 3.5cm
+\bottommargin 3.5cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+
+\series bold
+Text Classifier for dbGaP
+\end_layout
+
+\begin_layout Abstract
+We build a text-classifier for retrieving relevant documents from the dbGaP
+ documents.
+ We empirically evaluate two different classificaiton methods, and achieve
+ a much higher accuracy than traditional keyword based search approaches.
+\end_layout
+
+\begin_layout Section
+Introduction
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Introduction"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this work, we address the issue of finding relevant information from
+ 
+\emph on
+dbGaP
+\emph default
+.
+ We demonstrate the shortcomings of keyword based search, and develop a
+ text classifier that overcomes these shortcomings.
+ Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Dataset"
+
+\end_inset
+
+ describes our dataset.
+ Section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Models"
+
+\end_inset
+
+ describes the models we use for classification.
+ Section 4 describes the design of our experiments to learn the parameters
+ of the classifier.
+ Finally, we present experimental results in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Results"
+
+\end_inset
+
+ and discuss them qualitatively in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Discussion"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Dataset
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Dataset"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Selection of Reports
+\end_layout
+
+\begin_layout Standard
+The database of Genotypes and Phenotypes (dbGaP) developed by National Heart,
+ Lung, and Blood Institute (NHLBI) hosts genome wide association studies
+ (GWAS) data.
+ The dataset comprises 264 studies as of April, 2012.
+ We collected the abstracts of these studies to form our dataset.
+ We refer to an individual abstract in this dataset as a 
+\emph on
+document
+\emph default
+.
+\end_layout
+
+\begin_layout Subsection
+Document Labeling
+\end_layout
+
+\begin_layout Standard
+We assign upto 
+\begin_inset Formula $7$
+\end_inset
+
+ different
+\emph on
+ labels
+\emph default
+ to each document.
+ These labels are shown in table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Labels-assigned-to-documents"
+
+\end_inset
+
+, and were assigned manually depending on its relevance to the document.
+ For e.g.
+ we assign the label 
+\emph on
+heart
+\emph default
+ to all documents that are relevant to heart-related ailments.
+ 
+\end_layout
+
+\begin_layout Standard
+Note that many documents are assigned multiple labels because they may be
+ relevant in more than one specific field of interest.
+ For e.g.
+ all documents assigned the label 
+\emph on
+lungcancer
+\emph default
+ are also assigned the label 
+\emph on
+lung
+\emph default
+, but not vice versa.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="3">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="left" valignment="top" width="0">
+<column alignment="center" valignment="top" width="4cm">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Label Number
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Label Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Number of Documents Assigned
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Heart
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+47
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+2
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Atherosclerosis
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+22
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Blood
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+19
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Lung
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+17
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Diabetes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+15
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+6
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+Other
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+88
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\noun on
+General
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+16
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Labels assigned to documents in the dataset
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Labels-assigned-to-documents"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Document Representation and Preprocessing
+\end_layout
+
+\begin_layout Paragraph*
+Document Representation.
+ 
+\end_layout
+
+\begin_layout Standard
+We use the 
+\emph on
+bag-of-words
+\emph default
+ representation of documents.
+ After discarding words that occur in only one document, and words that
+ occur just once in the dataset, the vocabulary size reduces to 
+\begin_inset Formula $3078$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Paragraph*
+Preprocessing.
+\end_layout
+
+\begin_layout Standard
+Each abstract is pre-processed to remove numbers, punctuation marks and
+ non-ascii characters.
+ In the bag-of-words representation, we maintain normalized word counts
+ for each of the 
+\begin_inset Formula $3078$
+\end_inset
+
+ words, scaled in the range 
+\begin_inset Formula $[-1,+1]$
+\end_inset
+
+.
+ Each document 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+ also has 8 corresponding labels 
+\begin_inset Formula $\{y_{ij}\}_{j=1}^{7}$
+\end_inset
+
+ where 
+\begin_inset Formula $j$
+\end_inset
+
+ corresponds to the label number in table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Labels-assigned-to-documents"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+A label 
+\begin_inset Formula $y_{ij}$
+\end_inset
+
+ takes the value 
+\begin_inset Formula $+1$
+\end_inset
+
+ if label number 
+\begin_inset Formula $j$
+\end_inset
+
+ is assigned to the document 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+, and takes the value 
+\begin_inset Formula $-1$
+\end_inset
+
+ otherwise.
+ 
+\end_layout
+
+\begin_layout Section
+Methods
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Models"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Support Vector Machines (SVM), when applied to text classification, have
+ been shown to combine high performance and efficiency with theoretical
+ understanding and improved robustness 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "SVM"
+
+\end_inset
+
+.
+ In particular, it is highly effective without greedy heuristic components.
+ In this work, we evaluate a linear soft-margin SVM classifier and a traditional
+ Naive Bayes Approach to text classification.
+ 
+\end_layout
+
+\begin_layout Standard
+Consider a dataset 
+\begin_inset Formula $\left\{ \vec{x}_{i},\vec{y}_{i}\right\} _{i=1}^{n}$
+\end_inset
+
+ with 
+\begin_inset Formula $n$
+\end_inset
+
+ examples, where 
+\begin_inset Formula $\vec{x}_{i}$
+\end_inset
+
+ is a document and 
+\begin_inset Formula $\{y_{ij}\}_{j=1}^{k}$
+\end_inset
+
+ its label such that 
+\begin_inset Formula $y_{ij}\in\left\{ -1,+1\right\} $
+\end_inset
+
+, and 
+\begin_inset Formula $\vec{x}_{i}\in\mathbb{R}^{d}$
+\end_inset
+
+.
+ Here, 
+\begin_inset Formula $d$
+\end_inset
+
+ is the size of the vocabulary that represents document 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+In order to predict 
+\emph on
+one
+\emph default
+ binary label 
+\begin_inset Formula $y_{ij}$
+\end_inset
+
+, we consider a classifier function 
+\begin_inset Formula $f(x_{i})=g(x_{i};w)$
+\end_inset
+
+ where 
+\begin_inset Formula $w$
+\end_inset
+
+ is the parameter to be trained.
+ We assign a label 
+\begin_inset Formula $\hat{y_{ij}}=+1$
+\end_inset
+
+ iff 
+\begin_inset Formula $f(\vec{x}_{i})>t$
+\end_inset
+
+, and 
+\begin_inset Formula $\hat{y}_{ij}=-1$
+\end_inset
+
+ otherwise, where 
+\begin_inset Formula $t$
+\end_inset
+
+ is a configurable threshold.
+\end_layout
+
+\begin_layout Subsection
+Linear soft-margin SVMs
+\end_layout
+
+\begin_layout Standard
+In a linear soft-margin SVM, 
+\begin_inset Formula $g$
+\end_inset
+
+ is the dot product function.
+ The objective of learning is to find
+\begin_inset Formula 
+\begin{equation}
+w=\arg\min_{w\in\mathbb{R}^{d}}\parallel w\parallel^{2}+C\sum_{i=1}^{n}loss(f(x_{i}),y_{i})
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $loss$
+\end_inset
+
+ refers to the loss function.
+ Also, 
+\begin_inset Formula $C=\frac{1}{n\lambda}$
+\end_inset
+
+, where 
+\begin_inset Formula $\lambda$
+\end_inset
+
+ is the strength of regularization.
+ We use 
+\emph on
+hinge-loss
+\emph default
+ as a candidate loss function for our experiments.
+ Hinge loss is given by
+\begin_inset Formula 
+\[
+loss(f(x_{i});y_{i})=\max\left\{ 0,1-y_{i}f(x_{i})\right\} 
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In (1), 
+\begin_inset Formula $w$
+\end_inset
+
+ is a vector of parameters that defines the space of candidate functions.
+ Both 
+\begin_inset Formula $x_{i}$
+\end_inset
+
+ and 
+\begin_inset Formula $w$
+\end_inset
+
+ have the same dimensionality 
+\begin_inset Formula $d$
+\end_inset
+
+.
+ Note that a small value of 
+\begin_inset Formula $C$
+\end_inset
+
+ corresponds to strong regularization.
+\end_layout
+
+\begin_layout Subsection
+Naive Bayes
+\end_layout
+
+\begin_layout Standard
+It has been shown that multinomial naive-bayes for text classification performs
+ better than bernoulli naive bayes when the size of the vocabulary is greater
+ than 
+\begin_inset Formula $1000$
+\end_inset
+
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "NB"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In this model, we estimate the probability
+\begin_inset Formula 
+\begin{align*}
+P(y_{ij}=1\mid\vec{x}_{i})\propto & P(y_{ij})\prod_{k=1}^{d}P(x_{ik}\mid y_{ij})
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Where the constant of proportionality is 
+\begin_inset Formula $\nicefrac{1}{P(x_{i1},x_{i2},...,x_{id})}$
+\end_inset
+
+.
+ The classification rule then becomes:
+\begin_inset Formula 
+\begin{align*}
+\hat{y}_{ij}= & \arg\max_{z}\left[P(z)\prod_{k=1}^{d}P(x_{ik}\mid z)\right]
+\end{align*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Design of Experiments
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Design-of-Experiements"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Train-test split and Cross Validation
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Train-test-split-and"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We divide the dataset into two parts - a training set, comprising 
+\begin_inset Formula $67\%$
+\end_inset
+
+ of the examples, and a test set comprising the remaining 
+\begin_inset Formula $33\%$
+\end_inset
+
+.
+ This division is done in a stratified way to ensure that the distribution
+ of output label in the test set is approximately the same as in the training
+ set.
+\end_layout
+
+\begin_layout Standard
+Within the training set, we perform 5-fold cross validation to tune the
+ design parameters and prevent overfitting.
+ In doing so, we again perform stratified splits of the training set, where
+ each fold is selected such that the distribution of the output label is
+ approximately same in all the folds.
+ This allows us to train unbiased design parameters that will produce a
+ better model.
+\end_layout
+
+\begin_layout Subsection
+Regularization Strength
+\begin_inset CommandInset label
+LatexCommand label
+name "sub:Regularization-Strength"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The regularization strength parameter 
+\begin_inset Formula $C$
+\end_inset
+
+ is selected from the set of candidate values 
+\begin_inset Formula $S=\left\{ 2^{-14},2^{-13},...,2^{13},2^{14}\right\} ,$
+\end_inset
+
+where the optimum value is selected via cross-validation.
+ 
+\end_layout
+
+\begin_layout Standard
+The technique used to select the optimum value of 
+\begin_inset Formula $C$
+\end_inset
+
+ is 
+\emph on
+Grid Search
+\emph default
+, where we search through the set of all candidate values in 
+\begin_inset Formula $S$
+\end_inset
+
+.
+ For each 
+\begin_inset Formula $C'\in S$
+\end_inset
+
+, we train a model on 
+\begin_inset Formula $90\%$
+\end_inset
+
+ of the training set and obtain the loss on the validation set.
+ We do this exhaustively for all the 10 folds in the training set to obtain
+ the average loss for 
+\begin_inset Formula $C'$
+\end_inset
+
+.
+ The optimum value 
+\begin_inset Formula $C^{*}$
+\end_inset
+
+ is the one with the lowest loss.
+ Note that for SVM methods, the loss function we use is hinge loss, while
+ for Naive Bayes, we use negative log-likelihood.
+\end_layout
+
+\begin_layout Section
+Experimental Results
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Results"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Each prediction of the classifer can be either a true positive (
+\begin_inset Formula $tp$
+\end_inset
+
+), true negative (
+\begin_inset Formula $tn$
+\end_inset
+
+), false positive (
+\begin_inset Formula $fp$
+\end_inset
+
+) or false negative (
+\begin_inset Formula $fn$
+\end_inset
+
+).
+ We evaluate the performance of our classifier using the following metrics:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Accuracy=\frac{tp+tn}{tp+tn+fp+fn}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\align left
+\begin_inset Formula $Precision=\frac{tp}{tp+fp}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $Recall=\frac{tp}{tp+fn}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $F-measure=2\times\frac{Precision\times Recall}{Precision+Recall}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The comparison of different classification methods on the different labels
+ in our dataset are shown in table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Results"
+
+\end_inset
+
+.
+ The results obtained via manual keyword-based searches are shown in Table
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Performance-of-Keyword"
+
+\end_inset
+
+.
+ The results show that text classification can produce models that give
+ much better performance, especially in terms of precision.
+\end_layout
+
+\begin_layout Standard
+Figure 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:F-measure"
+
+\end_inset
+
+ shows the relative F-measure scores of the two text classifiers, and figure
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Accuracy-Precision-Recall"
+
+\end_inset
+
+ shows the performance of each individual metric - Accuracy, Precision and
+ Recall.
+ These graphs show that a linear soft-margin SVM classifier outperforms
+ a Naive Bayes classifier in all of these metrics.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+
+\size scriptsize
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="9">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="2cm">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell multirow="3" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Label
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Linear Soft-Margin SVM
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Naive Bayes
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Accuracy
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Precision
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Recall
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+F-Measure
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Accuracy
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Precision
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Recall
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+F-Measure
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Heart
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9318
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8462
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7857
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8523
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7500
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.3158
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Atherosclerosis
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9659
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7143
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7692
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9545
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.5714
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6667
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Blood
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9431
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6667
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.5000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.3333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9091
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2500
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1667
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2000
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Lung
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9659
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+1.0000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.4000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.5714
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9204
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.3333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1667
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2222
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Diabetes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9545
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6667
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.4000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.5000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8977
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1667
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1818
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Comparison of the Results using different classification methods
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Results"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+placement H
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+
+\size scriptsize
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="5">
+<features tabularvalignment="middle">
+<column alignment="left" valignment="top" width="2cm">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell multirow="3" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Label
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="1" alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Keyword Based Search (Manual)
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell multicolumn="2" alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell multirow="4" alignment="left" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Accuracy
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Precision
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Recall
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+F-Measure
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Heart
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6386
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.3071
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7222
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.4309
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Atherosclerosis
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.5714
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.8333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6780
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Blood
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.4070
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.0730
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7647
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1333
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="left" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Lung
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6561
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1388
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.7500
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2344
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+\noun on
+Diabetes
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.6526
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.1250
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.9333
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\size tiny
+0.2205
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\size default
+
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Performance of Keyword based searches (done manually).
+\begin_inset CommandInset label
+LatexCommand label
+name "tab:Performance-of-Keyword"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename F-measure.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Relative Performance of the Two Text Classifiers measured by F-measure.
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:F-measure"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename Relative_Performance.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Relative Performance of the Two Text Classifiers in terms of Accuracy, Precision
+ and Recall.
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Accuracy-Precision-Recall"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+placement H
+wide false
+sideways false
+status collapsed
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Graphics
+	filename svm-manual.png
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption
+
+\begin_layout Plain Layout
+Comparison of SVM Classifier and Keyword based manual search.
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Comparison-of-SVM-Manual"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Discussion
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Discussion"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph*
+Points:
+\end_layout
+
+\begin_layout Itemize
+We have shown that an SVM based classifier is much better than manual keyword
+ based classifier on all metrics.
+\end_layout
+
+\begin_layout Itemize
+This is a preliminary work, and we need to collect more data and build a
+ better text-classifier
+\end_layout
+
+\begin_layout Itemize
+Limitations: 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Didn't evaluate other models
+\end_layout
+
+\begin_layout Itemize
+No stemming
+\end_layout
+
+\begin_layout Itemize
+Didn't eliminate stop-words
+\end_layout
+
+\begin_layout Itemize
+More sophicated feature extraction is not done (e.g.
+ bigrams, UMLS Concepts, POS Tagging, etc.)
+\end_layout
+
+\end_deeper
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+label "1"
+key "SVM"
+
+\end_inset
+
+Thorsten Joachims.
+ 2002.
+ Learning to Classify Text Using Support Vector Machines: Methods, Theory
+ and Algorithms.
+ Kluwer Academic Publishers, Norwell, MA, USA.
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+label "2"
+key "NB"
+
+\end_inset
+
+Andrew McCallum and Kamal Nigam.
+ 1998.
+ A comparison of event models for Naive Bayes text classification.
+ In Proc.
+ AAAI-98 Workshop on Learning for Text Categorization, pages 41--48.
+ AAAI Press.
+\end_layout
+
+\end_body
+\end_document
